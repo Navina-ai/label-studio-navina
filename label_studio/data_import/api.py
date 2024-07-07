@@ -5,6 +5,8 @@ import json
 import logging
 import mimetypes
 import time
+import os
+import requests
 from typing import Union
 from urllib.parse import unquote, urlparse
 
@@ -19,7 +21,7 @@ from core.utils.params import bool_from_request, list_of_strings_from_request
 from csp.decorators import csp
 from django.conf import settings
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from projects.models import Project, ProjectImport, ProjectReimport
@@ -781,16 +783,30 @@ class PresignAPIMixin:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         url = resolved['url']
-        max_age = 0
-        if resolved.get('presign_ttl'):
-            max_age = resolved.get('presign_ttl') * 60
+        max_age = resolved.get('presign_ttl', 0) * 60
 
-        # Proxy to presigned url
-        response = HttpResponseRedirect(redirect_to=url, status=status.HTTP_303_SEE_OTHER)
-        response.headers['Cache-Control'] = f'no-store, max-age={max_age}'
+        # Determine content type based on file extension
+        file_ext = os.path.splitext(fileuri)[-1].lower()
+        if file_ext == '.pdf':
+            content_type = 'application/pdf'
+        elif file_ext == '.txt':
+            content_type = 'text/plain'
+        else:
+            content_type = 'application/octet-stream'  # Default to binary stream if type is unknown
+
+        try:
+            presigned_response = requests.get(url, stream=True)
+            presigned_response.raise_for_status()  # Will raise an HTTPError for bad requests
+        except requests.exceptions.RequestException as e:
+            logger.error(f'Error fetching the presigned URL {url}: {e}')
+            return Response(status=status.HTTP_502_BAD_GATEWAY)
+
+        response = StreamingHttpResponse(streaming_content=presigned_response.iter_content(2048),
+                                         content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(fileuri)}"'
+        response['Cache-Control'] = f'no-store, max-age={max_age}'
 
         return response
-
 
 class TaskPresignStorageData(PresignAPIMixin, APIView):
     """A file proxy to presign storage urls at the task level."""
