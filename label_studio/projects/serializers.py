@@ -57,6 +57,8 @@ class ProjectSerializer(FlexFieldsModelSerializer):
 
     created_by = UserSimpleSerializer(default=CreatedByFromContext(), help_text='Project owner')
 
+    assigned_annotators = UserSimpleSerializer(many=True, read_only=True)
+
     parsed_label_config = serializers.JSONField(
         default=None, read_only=True, help_text='JSON-formatted labeling configuration'
     )
@@ -129,6 +131,7 @@ class ProjectSerializer(FlexFieldsModelSerializer):
             'model_version',
             'is_draft',
             'created_by',
+            'assigned_annotators',
             'created_at',
             'min_annotations_to_start_training',
             'start_training_on_annotation_update',

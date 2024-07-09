@@ -109,6 +109,13 @@ _project_schema = openapi.Schema(
             type=openapi.TYPE_STRING,
             example='My first project',
         ),
+        'assigned_annotators': openapi.Schema(
+            title='assigned_annotators',
+            description='List of annotator ids assigned to the project',
+            type=openapi.TYPE_ARRAY,
+            items=openapi.Schema(type=openapi.TYPE_INTEGER),
+            example=[1, 2],
+        ),
         'label_config': openapi.Schema(
             title='label_config',
             description='Label config in XML format',
