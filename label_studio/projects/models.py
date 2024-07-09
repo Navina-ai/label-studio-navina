@@ -200,6 +200,15 @@ class Project(ProjectMixin, models.Model):
         null=True,
         verbose_name=_('created by'),
     )
+
+    # assigned annotators to the project
+    assigned_annotators = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='assigned_projects',
+        blank=True,
+        verbose_name=_('assigned annotators'),
+    )
+
     maximum_annotations = models.IntegerField(
         _('maximum annotation number'),
         default=1,
