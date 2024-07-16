@@ -94,6 +94,11 @@ class Task(TaskMixin, models.Model):
         help_text='True if the number of annotations for this task is greater than or equal '
         'to the number of maximum_completions for the project',
     )
+    has_conflict = models.BooleanField(
+        _('has conflict'),
+        default=False,
+        help_text='True if the task has conflicting annotations',
+    )
     overlap = models.IntegerField(
         _('overlap'),
         default=1,
@@ -172,6 +177,7 @@ class Task(TaskMixin, models.Model):
             models.Index(fields=['id', 'project']),
             models.Index(fields=['id', 'overlap']),
             models.Index(fields=['overlap']),
+            models.Index(fields=['has_conflict']),
             models.Index(fields=['project', 'id']),
         ]
 
@@ -511,6 +517,39 @@ class Task(TaskMixin, models.Model):
                 self.inner_id = None if max_inner_id is None else (max_inner_id + 1)
         super().save(*args, **kwargs)
 
+    def calc_conflict_status(self) -> bool:
+        def format_results(results_to_format: json) -> str:
+            # create dict from (from_name, to_name) to value
+            dict_keys_values = {(result['from_name'], result['to_name']): result['value'] for result in results_to_format}
+            # sort dict by keys and convert to string
+            return json.dumps(dict_keys_values, sort_keys=True)
+
+        annotations = self.annotations.filter(was_cancelled=False)
+
+        if annotations.exists():
+            # list of json results
+            results = [annotation.result for annotation in annotations]
+            # format results to json strings
+            results = [format_results(result) for result in results]
+            # create dict of unique results and their counts
+            unique_results = {}
+            for result in results:
+                if result not in unique_results:
+                    unique_results[result] = 1
+                else:
+                    unique_results[result] += 1
+
+            # there is a conflict if there are two result groups of the same size
+            if len(unique_results) > 1:
+                unique_results_counts = list(unique_results.values())
+                largest_count = max(unique_results_counts)
+                if unique_results_counts.count(largest_count) > 1:
+                    return True
+        return False
+
+
+
+
     @staticmethod
     def delete_tasks_without_signals(queryset):
         """
@@ -714,14 +753,13 @@ class Annotation(AnnotationMixin, models.Model):
             summary.remove_created_annotations_and_labels([self])
 
     def update_task(self):
-        update_fields = ['updated_at']
-
+        self.task.has_conflict = self.task.calc_conflict_status()
+        update_fields = ['updated_at', 'has_conflict']
         # updated_by
         request = get_current_request()
         if request:
             self.task.updated_by = request.user
             update_fields.append('updated_by')
-
         self.task.save(update_fields=update_fields)
 
     def save(self, *args, **kwargs):

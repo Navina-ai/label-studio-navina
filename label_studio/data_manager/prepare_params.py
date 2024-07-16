@@ -64,6 +64,7 @@ class Column(Enum):
     GROUND_TRUTH = 'ground_truth', 'Boolean', 'Ground truth status of the tasks'
     ANNOTATIONS_RESULTS = 'annotations_results', 'String', 'Annotation results for the tasks'
     REVIEWED = 'reviewed', 'Boolean', 'Whether the tasks have been reviewed (Enterprise only)'
+    HAS_CONFLICT = 'has_conflict', 'Boolean', 'Whether the tasks annotation has conflicts'
     PREDICTIONS_SCORE = 'predictions_score', 'Number', 'Prediction score for the task'
     PREDICTIONS_MODEL_VERSIONS = 'predictions_model_versions', 'String', 'Model version used for the predictions'
     PREDICTIONS_RESULTS = 'predictions_results', 'String', 'Prediction results for the tasks'

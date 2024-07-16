@@ -19,7 +19,12 @@ def annotate_finished_task_number(queryset):
     else:
         return queryset.annotate(finished_task_number=Count('tasks', distinct=True, filter=Q(tasks__is_labeled=True)))
 
+def annotate_partial_task_number(queryset):
+    # calculate partial_task_number by not  labeled and total_annotations > 0
+    return queryset.annotate(partial_task_number=Count('tasks', distinct=True, filter=(Q(tasks__is_labeled=False ) & Q(tasks__total_annotations__gt=0))))
 
+def annotate_conflict_task_number(queryset):
+    return queryset.annotate(conflict_task_number=Count('tasks', distinct=True, filter=Q(tasks__has_conflict=True)))
 def annotate_total_predictions_number(queryset):
     if flag_set(
         'fflag_perf_back_lsdv_4695_update_prediction_query_to_use_direct_project_relation',

@@ -38,6 +38,8 @@ from labels_manager.models import Label
 from projects.functions import (
     annotate_finished_task_number,
     annotate_ground_truth_number,
+    annotate_partial_task_number,
+    annotate_conflict_task_number,
     annotate_num_tasks_with_annotations,
     annotate_skipped_annotations_number,
     annotate_task_number,
@@ -62,6 +64,8 @@ class ProjectManager(models.Manager):
     COUNTER_FIELDS = [
         'task_number',
         'finished_task_number',
+        'partial_task_number',
+        'conflict_task_number'
         'total_predictions_number',
         'total_annotations_number',
         'num_tasks_with_annotations',
@@ -73,6 +77,8 @@ class ProjectManager(models.Manager):
     ANNOTATED_FIELDS = {
         'task_number': annotate_task_number,
         'finished_task_number': annotate_finished_task_number,
+        'partial_task_number': annotate_partial_task_number,
+        'conflict_task_number': annotate_conflict_task_number,
         'total_predictions_number': annotate_total_predictions_number,
         'total_annotations_number': annotate_total_annotations_number,
         'num_tasks_with_annotations': annotate_num_tasks_with_annotations,

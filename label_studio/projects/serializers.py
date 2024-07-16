@@ -71,6 +71,8 @@ class ProjectSerializer(FlexFieldsModelSerializer):
         default=None, read_only=True, help_text='Flag to detect is project ready for labeling'
     )
     finished_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Finished tasks')
+    partial_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Partially labeled tasks')
+    conflict_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Tasks with conflicts')
 
     queue_total = serializers.SerializerMethodField()
     queue_done = serializers.SerializerMethodField()
@@ -159,6 +161,8 @@ class ProjectSerializer(FlexFieldsModelSerializer):
             'reveal_preannotations_interactively',
             'pinned_at',
             'finished_task_number',
+            'partial_task_number',
+            'conflict_task_number',
             'queue_total',
             'queue_done',
         ]

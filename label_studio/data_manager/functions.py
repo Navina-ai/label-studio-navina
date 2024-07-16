@@ -265,6 +265,15 @@ def get_all_columns(project, *_):
             'visibility_defaults': {'explore': False, 'labeling': False},
             'project_defined': False,
         },
+        {
+            'id': 'has_conflict',
+            'title': 'Has Conflict',
+            'type': 'Boolean',
+            'help': 'True if the task has conflicts',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': False, 'labeling': False},
+            'project_defined': False,
+        },
     ]
 
     result['columns'].append(data_root)
