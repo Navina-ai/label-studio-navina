@@ -41,6 +41,9 @@ declare type APIProject = {
   is_draft?: boolean;
   created_by?: APIUserSimple;
 
+  /** Project Annotators */
+  assigned_annotators?: APIUserSimple[];
+
   /** @format date-time */
   created_at?: string;
 

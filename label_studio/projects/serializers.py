@@ -6,9 +6,10 @@ from django.db.models import Q
 from projects.models import Project, ProjectImport, ProjectOnboarding, ProjectReimport, ProjectSummary
 from rest_flex_fields import FlexFieldsModelSerializer
 from rest_framework import serializers
-from rest_framework.serializers import SerializerMethodField
+from rest_framework.serializers import SerializerMethodField, PrimaryKeyRelatedField
 from tasks.models import Task
 from users.serializers import UserSimpleSerializer
+from users.models import User
 
 
 class CreatedByFromContext:
@@ -57,6 +58,9 @@ class ProjectSerializer(FlexFieldsModelSerializer):
 
     created_by = UserSimpleSerializer(default=CreatedByFromContext(), help_text='Project owner')
 
+    assigned_annotators = PrimaryKeyRelatedField(
+        many=True, required=False, default=[], read_only=False, queryset=User.objects.all(), help_text='Annotators')
+
     parsed_label_config = serializers.JSONField(
         default=None, read_only=True, help_text='JSON-formatted labeling configuration'
     )
@@ -67,6 +71,8 @@ class ProjectSerializer(FlexFieldsModelSerializer):
         default=None, read_only=True, help_text='Flag to detect is project ready for labeling'
     )
     finished_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Finished tasks')
+    partial_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Partially labeled tasks')
+    conflict_task_number = serializers.IntegerField(default=None, read_only=True, help_text='Tasks with conflicts')
 
     queue_total = serializers.SerializerMethodField()
     queue_done = serializers.SerializerMethodField()
@@ -129,6 +135,7 @@ class ProjectSerializer(FlexFieldsModelSerializer):
             'model_version',
             'is_draft',
             'created_by',
+            'assigned_annotators',
             'created_at',
             'min_annotations_to_start_training',
             'start_training_on_annotation_update',
@@ -154,6 +161,8 @@ class ProjectSerializer(FlexFieldsModelSerializer):
             'reveal_preannotations_interactively',
             'pinned_at',
             'finished_task_number',
+            'partial_task_number',
+            'conflict_task_number',
             'queue_total',
             'queue_done',
         ]

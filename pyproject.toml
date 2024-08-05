@@ -138,7 +138,6 @@ exclude = [
     "label_studio/frontend",
 ]
 
-
 [tool.poetry.scripts]
 label-studio = "label_studio.server:main"
 
