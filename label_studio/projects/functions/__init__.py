@@ -1,6 +1,6 @@
 from core.feature_flags import flag_set
 from core.utils.db import SQCount
-from django.db.models import Count, OuterRef, Q
+from django.db.models import Count, OuterRef, Q, F
 from tasks.models import Annotation, Prediction, Task
 
 
@@ -19,16 +19,36 @@ def annotate_finished_task_number(queryset):
     else:
         return queryset.annotate(finished_task_number=Count('tasks', distinct=True, filter=Q(tasks__is_labeled=True)))
 
+
 def annotate_partial_task_number(queryset):
-    # calculate partial_task_number by not  labeled and total_annotations > 0
-    return queryset.annotate(partial_task_number=Count('tasks', distinct=True, filter=(Q(tasks__is_labeled=False) & Q(tasks__total_annotations__gt=0))))
+    # Calculate partial_task_number by tasks where overlap is greater than total_annotations - cancelled_annotations
+    # and total_annotations is at least 1
+    return queryset.annotate(
+        partial_task_number=Count(
+            'tasks',
+            distinct=True,
+            filter=Q(tasks__overlap__gt=F('tasks__total_annotations') - F('tasks__cancelled_annotations')) &
+                   Q(tasks__total_annotations__gte=1)
+        )
+    )
+
 
 def annotate_conflict_task_number(queryset):
-    return queryset.annotate(conflict_task_number=Count('tasks', distinct=True, filter=(Q(tasks__is_labeled=True) & Q(tasks__has_conflict=True))))
+    # Calculate conflict_task_number by tasks where has_conflict is True and overlap is smaller equal to total_annotations - cancelled_annotations
+    return queryset.annotate(
+        conflict_task_number=Count(
+            'tasks',
+            distinct=True,
+            filter=Q(tasks__has_conflict=True) & Q(
+                tasks__overlap__lte=F('tasks__total_annotations') - F('tasks__cancelled_annotations'))
+        )
+    )
+
+
 def annotate_total_predictions_number(queryset):
     if flag_set(
-        'fflag_perf_back_lsdv_4695_update_prediction_query_to_use_direct_project_relation',
-        user='auto',
+            'fflag_perf_back_lsdv_4695_update_prediction_query_to_use_direct_project_relation',
+            user='auto',
     ):
         predictions = Prediction.objects.filter(project=OuterRef('id')).values('id')
     else:
@@ -67,9 +87,9 @@ def annotate_num_tasks_with_annotations(queryset):
                 'tasks__id',
                 distinct=True,
                 filter=Q(tasks__annotations__isnull=False)
-                & Q(tasks__annotations__ground_truth=False)
-                & Q(tasks__annotations__was_cancelled=False)
-                & Q(tasks__annotations__result__isnull=False),
+                       & Q(tasks__annotations__ground_truth=False)
+                       & Q(tasks__annotations__was_cancelled=False)
+                       & Q(tasks__annotations__result__isnull=False),
             )
         )
 
@@ -86,8 +106,8 @@ def annotate_useful_annotation_number(queryset):
                 'tasks__annotations__id',
                 distinct=True,
                 filter=Q(tasks__annotations__was_cancelled=False)
-                & Q(tasks__annotations__ground_truth=False)
-                & Q(tasks__annotations__result__isnull=False),
+                       & Q(tasks__annotations__ground_truth=False)
+                       & Q(tasks__annotations__result__isnull=False),
             )
         )
 

@@ -4,8 +4,10 @@ class TaskMixin:
         return True
 
     def _get_is_labeled_value(self) -> bool:
+        # check if task is labeled by the number of completed annotations and has conflicts
         n = self.completed_annotations.count()
-        return n >= self.overlap
+        has_conflicts = self.has_conflict
+        return (n >= self.overlap) and not has_conflicts
 
     def update_is_labeled(self, *args, **kwargs) -> None:
         self.is_labeled = self._get_is_labeled_value()

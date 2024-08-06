@@ -173,6 +173,8 @@ class Task(TaskMixin, models.Model):
         db_table = 'task'
         indexes = [
             models.Index(fields=['project', 'is_labeled']),
+            models.Index(fields=['project', 'total_annotations']),
+            models.Index(fields=['project', 'cancelled_annotations']),
             models.Index(fields=['project', 'inner_id']),
             models.Index(fields=['id', 'project']),
             models.Index(fields=['id', 'overlap']),
