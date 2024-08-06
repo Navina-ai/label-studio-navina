@@ -520,7 +520,9 @@ class Task(TaskMixin, models.Model):
         super().save(*args, **kwargs)
 
     def calc_conflict_status(self) -> bool:
-        def format_results(results_to_format: json) -> str:
+        def format_results(results_to_format: list) -> str:
+            # ignore comments
+            results_to_format = [result for result in results_to_format if result.get('type') != 'textarea']
             # create dict from (from_name, to_name) to value
             dict_keys_values = {(result['from_name'], result['to_name']): result['value'] for result in results_to_format}
             # sort dict by keys and convert to string
