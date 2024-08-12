@@ -27,7 +27,7 @@ def annotate_partial_task_number(queryset):
         partial_task_number=Count(
             'tasks',
             distinct=True,
-            filter=Q(tasks__overlap__gt=F('tasks__total_annotations') - F('tasks__cancelled_annotations')) &
+            filter=Q(tasks__overlap__gt=F('tasks__total_annotations')) &
                    Q(tasks__total_annotations__gte=1)
         )
     )
@@ -40,7 +40,7 @@ def annotate_conflict_task_number(queryset):
             'tasks',
             distinct=True,
             filter=Q(tasks__has_conflict=True) & Q(
-                tasks__overlap__lte=F('tasks__total_annotations') - F('tasks__cancelled_annotations'))
+                tasks__overlap__lte=F('tasks__total_annotations'))
         )
     )
 
