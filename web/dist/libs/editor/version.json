@@ -1,6 +1,6 @@
 {
-  "message": "fix: OPTIC-884: Incorrect block style name for prediction card (#6089)",
-  "commit": "515fb3eb7fb5ce1835cf7adbb8be6bc60a0d735b",
-  "date": "2024-07-12T17:04:03.000Z",
+  "message": "refactor: optic 929: remove stale feature flags (#6284)",
+  "commit": "1c12b1740db5304aede5051fc78bd3dc2819b4c3",
+  "date": "2024-09-03T16:10:04.000Z",
   "branch": "develop"
 }
