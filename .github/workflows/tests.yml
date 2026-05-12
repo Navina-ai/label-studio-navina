@@ -57,6 +57,8 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
@@ -141,6 +143,8 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
@@ -213,6 +217,8 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
