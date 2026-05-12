@@ -262,9 +262,7 @@ def validate_ip(ip: str) -> None:
 
 def ssrf_safe_get(url, *args, **kwargs):
     validate_upload_url(url, block_local_urls=settings.SSRF_PROTECTION_ENABLED)
-    # Reason for #nosec: url has been validated as SSRF safe by the
-    # validation check above.
-    response = requests.get(url, *args, **kwargs)   # nosec
+    response = requests.get(url, *args, **kwargs)  # nosec B113
 
     # second check for SSRF for prevent redirect and dns rebinding attacks
     if settings.SSRF_PROTECTION_ENABLED:
