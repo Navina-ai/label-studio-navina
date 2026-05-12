@@ -54,7 +54,7 @@ jobs:
       - name: Install OS dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libffi7 libldap2-dev libsasl2-dev libssl-dev libxml2-dev libxslt-dev python3-dev
+          sudo apt-get install libffi-dev libldap2-dev libsasl2-dev libssl-dev libxml2-dev libxslt-dev python3-dev
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
@@ -138,7 +138,7 @@ jobs:
       - name: Install OS dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libffi7 libldap2-dev libsasl2-dev libssl-dev libxml2-dev libxslt-dev python3-dev
+          sudo apt-get install libffi-dev libldap2-dev libsasl2-dev libssl-dev libxml2-dev libxslt-dev python3-dev
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1

@@ -50,7 +50,9 @@ jobs:
         uses: snok/install-poetry@v1
 
       - name: Install Python dependencies
+        shell: bash -el {0}
         run: |
+          python -m pip install -U "setuptools>=65" wheel
           poetry install --with test
 
       - name: Conda info

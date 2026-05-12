@@ -795,7 +795,11 @@ class PresignAPIMixin:
             content_type = 'application/octet-stream'  # Default to binary stream if type is unknown
 
         try:
-            presigned_response = requests.get(url, stream=True)
+            presigned_response = requests.get(
+                url,
+                stream=True,
+                timeout=(30.0, 300.0),
+            )
             presigned_response.raise_for_status()  # Will raise an HTTPError for bad requests
         except requests.exceptions.RequestException as e:
             logger.error(f'Error fetching the presigned URL {url}: {e}')

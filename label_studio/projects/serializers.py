@@ -6,10 +6,10 @@ from django.db.models import Q
 from projects.models import Project, ProjectImport, ProjectOnboarding, ProjectReimport, ProjectSummary
 from rest_flex_fields import FlexFieldsModelSerializer
 from rest_framework import serializers
-from rest_framework.serializers import SerializerMethodField, PrimaryKeyRelatedField
+from rest_framework.serializers import PrimaryKeyRelatedField, SerializerMethodField
 from tasks.models import Task
-from users.serializers import UserSimpleSerializer
 from users.models import User
+from users.serializers import UserSimpleSerializer
 
 
 class CreatedByFromContext:
@@ -59,7 +59,13 @@ class ProjectSerializer(FlexFieldsModelSerializer):
     created_by = UserSimpleSerializer(default=CreatedByFromContext(), help_text='Project owner')
 
     assigned_annotators = PrimaryKeyRelatedField(
-        many=True, required=False, default=[], read_only=False, queryset=User.objects.all(), help_text='Annotators')
+        many=True,
+        required=False,
+        default=[],
+        read_only=False,
+        queryset=User.objects.all(),
+        help_text='Annotators',
+    )
 
     parsed_label_config = serializers.JSONField(
         default=None, read_only=True, help_text='JSON-formatted labeling configuration'
