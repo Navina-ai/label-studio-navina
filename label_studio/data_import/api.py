@@ -4,13 +4,13 @@ import base64
 import json
 import logging
 import mimetypes
-import time
 import os
-import requests
+import time
 from typing import Union
 from urllib.parse import unquote, urlparse
 
 import drf_yasg.openapi as openapi
+import requests
 from core.decorators import override_report_only_csp
 from core.feature_flags import flag_set
 from core.permissions import ViewClassPermission, all_permissions
@@ -21,7 +21,7 @@ from core.utils.params import bool_from_request, list_of_strings_from_request
 from csp.decorators import csp
 from django.conf import settings
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
+from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from projects.models import Project, ProjectImport, ProjectReimport
@@ -805,12 +805,14 @@ class PresignAPIMixin:
             logger.error(f'Error fetching the presigned URL {url}: {e}')
             return Response(status=status.HTTP_502_BAD_GATEWAY)
 
-        response = StreamingHttpResponse(streaming_content=presigned_response.iter_content(2048),
-                                         content_type=content_type)
+        response = StreamingHttpResponse(
+            streaming_content=presigned_response.iter_content(2048), content_type=content_type
+        )
         response['Content-Disposition'] = f'inline; filename="{os.path.basename(fileuri)}"'
         response['Cache-Control'] = f'no-store, max-age={max_age}'
 
         return response
+
 
 class TaskPresignStorageData(PresignAPIMixin, APIView):
     """A file proxy to presign storage urls at the task level."""
