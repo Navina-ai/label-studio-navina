@@ -53,6 +53,12 @@ jobs:
                 if (gitMatch && gitMatch.groups && gitMatch.groups.sha) {
                   return { kind: 'git', value: gitMatch.groups.sha };
                 }
+                const vendorMatch = content.match(
+                  /^\s*label-studio-sdk\s*=\s*\{\s*path\s*=\s*"(?<path>[^"]+\/(?<wheel>label_studio_sdk-[^"\/]+\.whl))"/m,
+                );
+                if (vendorMatch && vendorMatch.groups && vendorMatch.groups.wheel) {
+                  return { kind: 'vendor', value: vendorMatch.groups.wheel };
+                }
                 const pypiMatch = content.match(
                   /^\s*label-studio-sdk\s*=\s*(?<spec>[^\n#]+?)\s*$/m,
                 );
@@ -96,6 +102,15 @@ jobs:
                     return [
                         true,
                         `PyPI label-studio-sdk: ${pinBefore.value} -> ${pinAfter.value}`,
+                    ];
+                }
+                if (pinBefore.kind === 'vendor' && pinAfter.kind === 'vendor') {
+                    if (pinBefore.value === pinAfter.value) {
+                        return [true, 'Not changed'];
+                    }
+                    return [
+                        true,
+                        `vendored label-studio-sdk wheel: ${pinBefore.value} -> ${pinAfter.value}`,
                     ];
                 }
                 if (pinBefore.kind !== pinAfter.kind) {
