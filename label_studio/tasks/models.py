@@ -527,7 +527,9 @@ class Task(TaskMixin, models.Model):
             # ignore comments
             results_to_format = [result for result in results_to_format if result.get('type') != 'textarea']
             # create dict from (from_name, to_name) to value
-            dict_keys_values = {(result['from_name'], result['to_name']): result['value'] for result in results_to_format}
+            dict_keys_values = {
+                (result['from_name'], result['to_name']): result['value'] for result in results_to_format
+            }
             # sort dict by keys and convert to string
             return json.dumps(dict_keys_values, sort_keys=True)
 
@@ -553,9 +555,6 @@ class Task(TaskMixin, models.Model):
                 if unique_results_counts.count(largest_count) > 1:
                     return True
         return False
-
-
-
 
     @staticmethod
     def delete_tasks_without_signals(queryset):

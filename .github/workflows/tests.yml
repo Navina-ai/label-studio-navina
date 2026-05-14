@@ -19,7 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
@@ -58,6 +57,8 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
@@ -142,6 +143,8 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
@@ -176,8 +179,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.8'
           - '3.9'
+          - '3.10'
 
     # required for poetry action
     # see https://github.com/marketplace/actions/install-poetry-action#running-on-windows
@@ -214,18 +217,11 @@ jobs:
 
       - name: Set up Poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install Python dependencies
         run: poetry install --with test
-
-      - name: Fix sqlite.dll for python < 3.9
-        if: ${{ contains(matrix.python-version, '3.8') }}
-        run: |
-          set PYTHONIOENCODING=utf-8
-          set PYTHONLEGACYWINDOWSSTDIO=utf-8
-          bash -c "poetry run label-studio init my_project --agree-fix-sqlite --force-fix-sqlite"
-          cp sqlite3.dll %pythonLocation%/DLLs/sqlite3.dll
-        shell: cmd
 
       - name: Init project
         run: |

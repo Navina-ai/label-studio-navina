@@ -91,6 +91,8 @@ jobs:
       - name: "Poetry: Set up"
         if: steps.details.outputs.poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: "Poetry: Commit and Push"
         if: steps.details.outputs.poetry

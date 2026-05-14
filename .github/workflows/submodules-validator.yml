@@ -43,30 +43,89 @@ jobs:
                 owner: owner,
                 repo: 'label-studio-sdk',
                 file_path: 'pyproject.toml',
-                regexp: /label-studio-sdk(\/archive|.git).*(?<sha>[a-f0-9]{40})/,
               },
             ];
-            
-            async function getSubmoduleVersion(submodule, sha) {
+
+            function parseLabelStudioSdkPin(content) {
+                const gitMatch = content.match(
+                  /label-studio-sdk(\/archive|\.git).*(?<sha>[a-f0-9]{40})/,
+                );
+                if (gitMatch && gitMatch.groups && gitMatch.groups.sha) {
+                  return { kind: 'git', value: gitMatch.groups.sha };
+                }
+                const vendorMatch = content.match(
+                  /^\s*label-studio-sdk\s*=\s*\{\s*path\s*=\s*"(?<path>[^"]+\/(?<wheel>label_studio_sdk-[^"\/]+\.whl))"/m,
+                );
+                if (vendorMatch && vendorMatch.groups && vendorMatch.groups.wheel) {
+                  return { kind: 'vendor', value: vendorMatch.groups.wheel };
+                }
+                const pypiMatch = content.match(
+                  /^\s*label-studio-sdk\s*=\s*(?<spec>[^\n#]+?)\s*$/m,
+                );
+                if (pypiMatch && pypiMatch.groups && pypiMatch.groups.spec) {
+                  const spec = pypiMatch.groups.spec.trim();
+                  if (spec.startsWith('{')) {
+                    return null;
+                  }
+                  return { kind: 'pypi', value: spec };
+                }
+                return null;
+            }
+
+            async function getLabelStudioSdkPin(submodule, sha) {
                 const response = await github.rest.repos.getContent({
                     owner: owner,
                     repo: repo,
                     ref: sha,
                     path: submodule.file_path,
                 });
-                const content = Buffer.from(response.data.content, response.data.encoding).toString('utf-8');
-                const match = content.match(submodule.regexp);
-                return match.groups.sha;
+                const content = Buffer.from(
+                    response.data.content,
+                    response.data.encoding,
+                ).toString('utf-8');
+                return parseLabelStudioSdkPin(content);
             }
-            
+
             async function validateSubmodule(submodule, base_sha, head_sha) {
-                const before = await getSubmoduleVersion(submodule, base_sha);
-                const after = await getSubmoduleVersion(submodule, head_sha);
-            
-                if (before === after && !strictCheck) {
-                    return [true, 'Not changed']
+                const pinBefore = await getLabelStudioSdkPin(submodule, base_sha);
+                const pinAfter = await getLabelStudioSdkPin(submodule, head_sha);
+                if (!pinBefore || !pinAfter) {
+                    return [
+                        false,
+                        'Could not parse label-studio-sdk in pyproject.toml (git URL SHA or PyPI constraint expected)',
+                    ];
                 }
-            
+                if (pinBefore.kind === 'pypi' && pinAfter.kind === 'pypi') {
+                    if (pinBefore.value === pinAfter.value) {
+                        return [true, 'Not changed'];
+                    }
+                    return [
+                        true,
+                        `PyPI label-studio-sdk: ${pinBefore.value} -> ${pinAfter.value}`,
+                    ];
+                }
+                if (pinBefore.kind === 'vendor' && pinAfter.kind === 'vendor') {
+                    if (pinBefore.value === pinAfter.value) {
+                        return [true, 'Not changed'];
+                    }
+                    return [
+                        true,
+                        `vendored label-studio-sdk wheel: ${pinBefore.value} -> ${pinAfter.value}`,
+                    ];
+                }
+                if (pinBefore.kind !== pinAfter.kind) {
+                    return [
+                        true,
+                        `label-studio-sdk pin kind changed (${pinBefore.kind} -> ${pinAfter.kind})`,
+                    ];
+                }
+                const before = pinBefore.value;
+                const after = pinAfter.value;
+
+                if (before === after && !strictCheck) {
+                    return [true, 'Not changed'];
+                }
+
                 const {data: compare} = await github.rest.repos.compareCommits({
                     owner: submodule.owner,
                     repo: submodule.repo,
@@ -128,7 +187,7 @@ jobs:
             for (let submodule of submodules) {
                 let status = {}
                 if (lsCompare.files.some(e => e.filename === submodule.file_path)) {
-                    status = await validateSubmodule(submodule, base_sha, head_sha);
+                    status = await validateSubmodule(submodule, base_sha_redacted, head_sha);
                 } else {
                     status = [true, `Not changed`]
                 }
