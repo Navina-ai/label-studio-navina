@@ -10,6 +10,10 @@ on:
 env:
   NODE: '18'
   CACHE_NAME_PREFIX: v1
+  # Constrain build-isolation deps so source builds (e.g. label-studio-sdk
+  # at the pinned commit) do not pick up poetry-core 2.x, which strict-validates
+  # PEP 621 [project] tables and rejects the SDK's pyproject.toml.
+  PIP_CONSTRAINT: ${{ github.workspace }}/.github/build-constraints.txt
 
 jobs:
   run_pytest_sqlite:
